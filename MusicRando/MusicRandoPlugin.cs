@@ -96,7 +96,7 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
         _musicCueLocations = Addressables.ResourceLocators.First()
             .AllLocations
             .Where(loc => loc.ResourceType == typeof(MusicCue))
-            // TODO - check asset path
+            .Where(loc => loc.InternalId.StartsWith("Assets/Audio/MusicCues"))
             .ToList();
 
         Logger.LogInfo($"Found {_musicCueLocations.Count} music cue locations");
