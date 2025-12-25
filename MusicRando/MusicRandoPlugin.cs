@@ -1,4 +1,5 @@
 using BepInEx;
+using MusicRando.MusicSelectionStrategies;
 using Silksong.AssetHelper;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,24 +9,57 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace MusicRando;
 
+// TODOs
+// Apply to atmos cues as well (plus config) (? - maybe not)
 // Nuuvestigate channels
 
+
 [BepInAutoPlugin(id: "io.github.flibber-hk.musicrando")]
+[BepInDependency("io.github.flibber-hk.filteredlogs", BepInDependency.DependencyFlags.SoftDependency)]
 public partial class MusicRandoPlugin : BaseUnityPlugin
 {
-    private List<IResourceLocation> _musicCueLocations = new();
-
-    private static System.Random rng = new();
+    private static Dictionary<RandomizationStrategyOption, SelectionStrategy> Strategies { get; set; }
 
     private void Awake()
     {
-        AssetsData.InvokeAfterAddressablesLoaded(FindMusicCues);
+        ConfigSettings.Init(Config);
+        Strategies = new()
+        {
+            [RandomizationStrategyOption.OnChange] = new OnChangeSelectionStrategy(),
+            [RandomizationStrategyOption.Chaos] = new ChaosSelectionStrategy(),
+            [RandomizationStrategyOption.Consistent] = new ConsistentSelectionStrategy(),
+            [RandomizationStrategyOption.RandoRando] = new RandoRandoSelectionStrategy(),
+            [RandomizationStrategyOption.Disabled] = new DisabledSelectionStrategy(),
+        };
 
+        ConfigSettings.MusicRandomization?.SettingChanged += (sender, e) =>
+        {
+            if (Strategies.TryGetValue(ConfigSettings.MusicRandomization.Value, out SelectionStrategy strategy))
+            {
+                strategy.InitStrategy();
+            }
+        };
+
+        AssetsData.InvokeAfterAddressablesLoaded(FindAudioCues);
         On.AudioManager.ApplyMusicCue += OnApplyMusicCue;
+        GameEvents.OnQuitToMenu += OnQuitToMenu;
 
-        GameEvents.OnQuitToMenu += UnloadLastHandle;
+#if DEBUG
+        FilteredLogs.API.ApplyFilter(Name);
+        DebugHooks.Hook(Logger);
+#endif
 
         Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");
+    }
+
+    private void OnQuitToMenu()
+    {
+        UnloadLastHandle();
+        SelectionStrategy.Reset();
+        foreach (SelectionStrategy strat in Strategies.Values)
+        {
+            strat.InitStrategy();
+        }
     }
 
     private void OnApplyMusicCue(
@@ -37,46 +71,37 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
         bool applySnapshot
         )
     {
-        if ((_musicCueLocations?.Count ?? 0) <= 0)
+        RandomizationStrategyOption option = ConfigSettings.MusicRandomization?.Value ?? RandomizationStrategyOption.OnChange;
+        SelectionStrategy strat = Strategies[option];
+
+        MusicAction action = strat.Select(musicCue, out IResourceLocation? location);
+
+        if (action == MusicAction.Replay)
         {
-            Logger.LogInfo($"Not replacing {musicCue.name}: no music cue locations");
+            if (_lastMusicCueHandle.HasValue)
+            {
+                orig(self, _lastMusicCueHandle.Value.Result, delayTime, transitionTime, applySnapshot);
+                return;
+            }
+            else
+            {
+                action = MusicAction.Ignore;
+            }
+        }
+        if (action == MusicAction.Ignore)
+        {
             orig(self, musicCue, delayTime, transitionTime, applySnapshot);
             return;
         }
 
-        if (!GameEvents.IsInGame)
-        {
-            Logger.LogInfo($"Not replacing {musicCue.name}: in menu");
-            orig(self, musicCue, delayTime, transitionTime, applySnapshot);
-            return;
-        }
+        AsyncOperationHandle<MusicCue> handle = Addressables.LoadAssetAsync<MusicCue>(location!);
 
-        if (musicCue.name == "None")
-        {
-            Logger.LogInfo($"Not replacing musicCue: {musicCue.name}");
-            orig(self, musicCue, delayTime, transitionTime, applySnapshot);
-            return;
-        }
-
-        if (_lastOrigMusicCueName == musicCue.name && _lastMusicCueHandle.HasValue)
-        {
-            Logger.LogInfo($"Repplying {_lastMusicCueHandle.Value.Result.name} over {_lastOrigMusicCueName}");
-            orig(self, _lastMusicCueHandle.Value.Result, delayTime, transitionTime, applySnapshot);
-            return;
-        }
-
-        _lastOrigMusicCueName = musicCue.name;
-
-        // TODO - make sure we apply a different music cue to the previous one we applied
-        int idx = rng.Next(_musicCueLocations!.Count);
-        IResourceLocation selected = _musicCueLocations[idx];
-
-        AsyncOperationHandle<MusicCue> handle = Addressables.LoadAssetAsync<MusicCue>(selected);
+        string origName = musicCue.name;
         handle.Completed += theHandle =>
         {
             UnloadLastHandle();
             _lastMusicCueHandle = theHandle;
-            Logger.LogInfo($"Applying {theHandle.Result.name} over {_lastOrigMusicCueName}");
+            Logger.LogInfo($"Applying {theHandle.Result.name} over {origName}");
 
             orig(self, theHandle.Result, delayTime, transitionTime, applySnapshot);
         };
@@ -87,20 +112,29 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
         if (_lastMusicCueHandle.HasValue)
         {
             Addressables.Release(_lastMusicCueHandle.Value);
+            _lastMusicCueHandle = null;
         }
     }
 
-    private string? _lastOrigMusicCueName = null;
-    private AsyncOperationHandle<MusicCue>? _lastMusicCueHandle = null;
+    private AsyncOperationHandle<MusicCue>? _lastMusicCueHandle { get; set; } = null;
 
-    private void FindMusicCues()
+    private void FindAudioCues()
     {
-        _musicCueLocations = Addressables.ResourceLocators.First()
+        List<IResourceLocation> musicCueLocations = Addressables.ResourceLocators.First()
             .AllLocations
             .Where(loc => loc.ResourceType == typeof(MusicCue))
             .Where(loc => loc.InternalId.StartsWith("Assets/Audio/MusicCues"))
             .ToList();
+        SelectionStrategy.SetResourceLocations(musicCueLocations);
 
-        Logger.LogInfo($"Found {_musicCueLocations.Count} music cue locations");
+        /*
+        _atmosCueLocations = Addressables.ResourceLocators.First()
+            .AllLocations
+            .Where(loc => loc.ResourceType == typeof(AtmosCue))
+            .Where(loc => loc.InternalId.StartsWith("Assets/Audio/AtmosCues"))
+            .ToList();
+        */
+
+        Logger.LogInfo($"Found {musicCueLocations.Count} music cue locations");
     }
 }
