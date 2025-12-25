@@ -10,8 +10,12 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 namespace MusicRando;
 
 // TODOs
-// Apply to atmos cues as well (plus config) (? - maybe not)
-// Nuuvestigate channels
+// * Consider applying to atmos cues. Certain areas get an atmos cue when you enter them, an example being the
+// bellshrine. I don't really want to play music raw but we could do that... it'd be annoying though
+// * Nuuvestigate channels - particularly the Sub-Area AudioMixerSnapshot which sometimes kills the music,
+// presumably if the music cue is missing a certain channel. Maybe we should fill the missing channels
+// with the main channel's music?
+// * Probably ought to turn the On hook into a Monomod Hook, or alternatively get MMHOOK on Nuget
 
 
 [BepInAutoPlugin(id: "io.github.flibber-hk.musicrando")]
