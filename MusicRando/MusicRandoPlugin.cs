@@ -80,6 +80,7 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
         {
             if (_lastMusicCueHandle.HasValue)
             {
+                Logger.LogInfo($"Re-applying {_lastMusicCueHandle.Value.Result.name}, over {musicCue.name}");
                 orig(self, _lastMusicCueHandle.Value.Result, delayTime, transitionTime, applySnapshot);
                 return;
             }

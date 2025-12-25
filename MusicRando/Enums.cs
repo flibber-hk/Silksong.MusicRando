@@ -22,7 +22,12 @@ public enum RandomizationStrategyOption
 
 public enum MusicAction
 {
+    // Play what the game wanted to play
     Ignore,
+
+    // Play the previously played track
     Replay,
+
+    // Play a new randomly selected track
     Randomize,
 }
