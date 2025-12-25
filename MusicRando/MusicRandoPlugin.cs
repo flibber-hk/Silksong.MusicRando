@@ -8,6 +8,8 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace MusicRando;
 
+// Nuuvestigate channels
+
 [BepInAutoPlugin(id: "io.github.flibber-hk.musicrando")]
 public partial class MusicRandoPlugin : BaseUnityPlugin
 {
