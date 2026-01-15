@@ -1,6 +1,7 @@
 using BepInEx;
 using MusicRando.MusicSelectionStrategies;
 using Silksong.AssetHelper;
+using Silksong.AssetHelper.Core;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.AddressableAssets;
@@ -20,6 +21,7 @@ namespace MusicRando;
 
 [BepInAutoPlugin(id: "io.github.flibber-hk.musicrando")]
 [BepInDependency("io.github.flibber-hk.filteredlogs", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(AssetHelperPlugin.Id)]
 public partial class MusicRandoPlugin : BaseUnityPlugin
 {
     private static Dictionary<RandomizationStrategyOption, SelectionStrategy> Strategies { get; set; }
@@ -44,9 +46,9 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
             }
         };
 
-        AssetsData.InvokeAfterAddressablesLoaded(FindAudioCues);
+        AddressablesData.InvokeAfterAddressablesLoaded(FindAudioCues);
         On.AudioManager.ApplyMusicCue += OnApplyMusicCue;
-        GameEvents.OnQuitToMenu += OnQuitToMenu;
+        // GameEvents.OnQuitToMenu += OnQuitToMenu;
 
 #if DEBUG
         FilteredLogs.API.ApplyFilter(Name);
@@ -125,7 +127,7 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
 
     private void FindAudioCues()
     {
-        List<IResourceLocation> musicCueLocations = Addressables.ResourceLocators.First()
+        List<IResourceLocation> musicCueLocations = AddressablesData.MainLocator!
             .AllLocations
             .Where(loc => loc.ResourceType == typeof(MusicCue))
             .Where(loc => loc.InternalId.StartsWith("Assets/Audio/MusicCues"))

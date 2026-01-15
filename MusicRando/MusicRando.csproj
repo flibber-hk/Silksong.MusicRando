@@ -38,6 +38,7 @@
     </PackageReference>
     <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
     <PackageReference Include="Silksong.GameLibs" Version="*-*" PrivateAssets="all" />
+    <PackageReference Include="Silksong.AssetHelper" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,9 +51,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="AssetHelper">
-      <HintPath>$(SilksongPluginsFolder)/flibber-AssetHelper/AssetHelper.dll</HintPath>
-    </Reference>
     <Reference Include="MMHOOK_Assembly-CSharp">
       <HintPath>$(SilksongPluginsFolder)/MMHOOK/Managed/MMHOOK_Assembly-CSharp.dll</HintPath>
     </Reference>

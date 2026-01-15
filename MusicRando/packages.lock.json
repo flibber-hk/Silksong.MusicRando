@@ -52,6 +52,18 @@
         "resolved": "1.15.0",
         "contentHash": "FbU0El+EEjdpuIX4iDbeS7ki1uzpJPx8vbqOzEtqnl1GZeAGJfq+jCbxeJL2y0EPnUNk8dRnnqR2xnYXg9Tf+g=="
       },
+      "Silksong.AssetHelper": {
+        "type": "Direct",
+        "requested": "[1.0.0, )",
+        "resolved": "1.0.0",
+        "contentHash": "53mNGEsiqYTq2cI6ikNb8sp6yyeU7dyRuCcugOu3gisTfpvqpY3QMvMSOnM7bxkCiO7/Ire20gQ5cE522J+PXQ==",
+        "dependencies": {
+          "BepInEx.Core": "5.4.21",
+          "HarmonyX": "2.9.0",
+          "MonoDetour": "0.7.9",
+          "UnityEngine.Modules": "6000.0.50"
+        }
+      },
       "Silksong.FilteredLogs": {
         "type": "Direct",
         "requested": "[1.0.0, )",
@@ -95,6 +107,14 @@
         "type": "Transitive",
         "resolved": "0.11.4",
         "contentHash": "IC1h5g0NeJGHIUgzM1P82ld57knhP0IcQfrYITDPXlNpMYGUrsG5TxuaWTjaeqDNQMBDNZkB8L0rBnwsY6JHuQ=="
+      },
+      "MonoDetour": {
+        "type": "Transitive",
+        "resolved": "0.7.9",
+        "contentHash": "vTYpJxV51Tsjrycjt04bEGrKMIQqa/c8wf+KpqF2JhXu19ijG8k4cMeT2bXAOqCuy6e/7gn1eaBNM8yQKP847Q==",
+        "dependencies": {
+          "MonoMod.RuntimeDetour": "21.12.13.1"
+        }
       },
       "MonoMod.RuntimeDetour": {
         "type": "Transitive",
