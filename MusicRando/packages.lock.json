@@ -84,18 +84,6 @@
           "UnityEngine.Modules": "6000.0.50"
         }
       },
-      "Silksong.FilteredLogs": {
-        "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "El96ECSmeeK5wHxB3uTeNzQuoNIyn3gAAtiU3zVVp9bJk41bDXzSFR5HplqVjoZ36mb/75FCIy6hRXIgWTjXNw==",
-        "dependencies": {
-          "BepInEx.Core": "5.4.21",
-          "Harmonize": "1.0.3",
-          "HarmonyX": "2.9.0",
-          "UnityEngine.Modules": "6000.0.50"
-        }
-      },
       "Silksong.GameLibs": {
         "type": "Direct",
         "requested": "[*-*, )",
