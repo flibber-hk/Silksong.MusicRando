@@ -11,6 +11,8 @@ internal static class DebugHooks
 
     public static void Hook(ManualLogSource log)
     {
+        FilteredLogs.API.ApplyFilter(MusicRandoPlugin.Name);
+
         _log = log;
 
         On.AudioManager.BeginApplyMusicSnapshot += AudioManager_BeginApplyMusicSnapshot;

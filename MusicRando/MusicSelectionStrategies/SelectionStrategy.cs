@@ -1,8 +1,9 @@
-﻿using Silksong.AssetHelper;
+﻿using Silksong.AssetHelper.ManagedAssets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.ResourceManagement.ResourceLocations;
+using LoadableMusicCue = Silksong.AssetHelper.ManagedAssets.ManagedResourceLocation<MusicCue>;
 
 namespace MusicRando.MusicSelectionStrategies;
 
@@ -10,7 +11,7 @@ internal abstract class SelectionStrategy
 {
     protected static Random rng = new();
 
-    protected static Dictionary<string, IResourceLocation>? MusicResourceLocations;
+    protected static Dictionary<string, LoadableMusicCue>? MusicResourceLocations;
     protected static List<string> DifferentLocationKeys => MusicResourceLocations?
         .Keys
         .Where(x => (LastSelectedLocationKey ?? string.Empty) != x)
@@ -19,7 +20,27 @@ internal abstract class SelectionStrategy
 
     internal static void SetResourceLocations(IEnumerable<IResourceLocation> locs)
     {
-        MusicResourceLocations = locs.ToDictionary(x => x.InternalId);
+        if (MusicResourceLocations != null)
+        {
+            throw new InvalidOperationException("Can't set locs more than once!");
+        }
+
+        MusicResourceLocations = locs.ToDictionary(x => x.InternalId, x => new LoadableMusicCue(x));
+
+        GameEvents.OnEnterGame += () =>
+        {
+            foreach (LoadableMusicCue cue in MusicResourceLocations.Values)
+            {
+                cue.Load();
+            }
+        };
+        GameEvents.OnQuitToMenu += () =>
+        {
+            foreach (LoadableMusicCue cue in MusicResourceLocations.Values)
+            {
+                cue.Unload();
+            }
+        };
     }
 
     /// <summary>
@@ -48,11 +69,8 @@ internal abstract class SelectionStrategy
 
         if (!GameEvents.IsInGame)
         {
-            if (ConfigSettings.IncludeMenuMusic?.Value != true)
-            {
-                // Don't change menu music unless they ask for it
-                return MusicAction.Ignore;
-            }
+            // It's easier to just ignore the menu music
+            return MusicAction.Ignore;
         }
 
         if (origToPlay.name == "None")
@@ -67,7 +85,7 @@ internal abstract class SelectionStrategy
     }
 
     // Run the selection, and then assign relevant static members on this class
-    internal MusicAction Select(MusicCue origToPlay, out IResourceLocation? location)
+    internal MusicAction Select(MusicCue origToPlay, out LoadableMusicCue? location)
     {
         MusicAction action = RunSelection(origToPlay, out string? locationKey);
 

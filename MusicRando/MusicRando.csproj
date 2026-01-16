@@ -39,9 +39,15 @@
     <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
     <PackageReference Include="Silksong.GameLibs" Version="*-*" PrivateAssets="all" />
     <PackageReference Include="Silksong.AssetHelper" Version="1.0.1" />
+    <PackageReference Include="MonoDetour.HookGen" Version="0.7.*" PrivateAssets="all" />
+    <PackageReference Include="MonoDetour" Version="*" />
   </ItemGroup>
 
-  <ItemGroup>
+  <PropertyGroup Condition="'$(CI)' == 'true'">
+    <MonoDetourHookGenStripUnusedHooks>true</MonoDetourHookGenStripUnusedHooks>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <PackageReference Include="Silksong.FilteredLogs" Version="1.0.0" />
   </ItemGroup>
   
@@ -50,7 +56,7 @@
     <None Include="../thunderstore/icon.png" Pack="True" PackagePath="icon.png" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <Reference Include="MMHOOK_Assembly-CSharp">
       <HintPath>$(SilksongPluginsFolder)/MMHOOK/Managed/MMHOOK_Assembly-CSharp.dll</HintPath>
     </Reference>

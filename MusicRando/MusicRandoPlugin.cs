@@ -1,11 +1,11 @@
 using BepInEx;
+using MonoDetour.HookGen;
 using MusicRando.MusicSelectionStrategies;
 using Silksong.AssetHelper;
 using Silksong.AssetHelper.Core;
+using Silksong.AssetHelper.ManagedAssets;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace MusicRando;
@@ -22,6 +22,7 @@ namespace MusicRando;
 [BepInAutoPlugin(id: "io.github.flibber-hk.musicrando")]
 [BepInDependency("io.github.flibber-hk.filteredlogs", BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(AssetHelperPlugin.Id)]
+[MonoDetourTargets(typeof(AudioManager))]
 public partial class MusicRandoPlugin : BaseUnityPlugin
 {
     private static Dictionary<RandomizationStrategyOption, SelectionStrategy> Strategies { get; set; }
@@ -29,6 +30,8 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
     private void Awake()
     {
         ConfigSettings.Init(Config);
+        GameEvents.Hook();
+
         Strategies = new()
         {
             [RandomizationStrategyOption.OnChange] = new OnChangeSelectionStrategy(),
@@ -47,47 +50,37 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
         };
 
         AddressablesData.InvokeAfterAddressablesLoaded(FindAudioCues);
-        On.AudioManager.ApplyMusicCue += OnApplyMusicCue;
-        // GameEvents.OnQuitToMenu += OnQuitToMenu;
+        Md.AudioManager.ApplyMusicCue.Prefix(OnApplyMusicCue);
+        GameEvents.OnQuitToMenu += OnQuitToMenu;
 
 #if DEBUG
-        FilteredLogs.API.ApplyFilter(Name);
-        DebugHooks.Hook(Logger);
+        // DebugHooks.Hook(Logger);
 #endif
 
         Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");
     }
 
-    private void OnQuitToMenu()
-    {
-        UnloadLastHandle();
-        SelectionStrategy.Reset();
-        foreach (SelectionStrategy strat in Strategies.Values)
-        {
-            strat.InitStrategy();
-        }
-    }
+    private ManagedResourceLocation<MusicCue>? _lastMusicCueLocation;
 
-    private void OnApplyMusicCue(
-        On.AudioManager.orig_ApplyMusicCue orig,
-        AudioManager self,
-        MusicCue musicCue,
-        float delayTime,
-        float transitionTime,
-        bool applySnapshot
-        )
+    private void OnApplyMusicCue(AudioManager self, ref MusicCue musicCue, ref float delayTime, ref float transitionTime, ref bool applySnapshot)
     {
         RandomizationStrategyOption option = ConfigSettings.MusicRandomization?.Value ?? RandomizationStrategyOption.OnChange;
         SelectionStrategy strat = Strategies[option];
 
-        MusicAction action = strat.Select(musicCue, out IResourceLocation? location);
+        MusicAction action = strat.Select(musicCue, out ManagedResourceLocation<MusicCue>? location);
+
+        if (location != null && !location.IsLoaded)
+        {
+            Logger.LogInfo($"Failed to apply music cue: not loaded");
+            action = MusicAction.Ignore;
+        }
 
         if (action == MusicAction.Replay)
         {
-            if (_lastMusicCueHandle.HasValue)
+            if (_lastMusicCueLocation is not null)
             {
-                Logger.LogInfo($"Re-applying {_lastMusicCueHandle.Value.Result.name}, over {musicCue.name}");
-                orig(self, _lastMusicCueHandle.Value.Result, delayTime, transitionTime, applySnapshot);
+                Logger.LogInfo($"Re-applying {_lastMusicCueLocation.Handle.Result.name}, over {musicCue.name}");
+                musicCue = _lastMusicCueLocation.Handle.Result;
                 return;
             }
             else
@@ -97,33 +90,22 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
         }
         if (action == MusicAction.Ignore)
         {
-            orig(self, musicCue, delayTime, transitionTime, applySnapshot);
             return;
         }
 
-        AsyncOperationHandle<MusicCue> handle = Addressables.LoadAssetAsync<MusicCue>(location!);
-
-        string origName = musicCue.name;
-        handle.Completed += theHandle =>
-        {
-            UnloadLastHandle();
-            _lastMusicCueHandle = theHandle;
-            Logger.LogInfo($"Applying {theHandle.Result.name} over {origName}");
-
-            orig(self, theHandle.Result, delayTime, transitionTime, applySnapshot);
-        };
+        Logger.LogInfo($"Applying {location!.Handle.Result.name} over {musicCue.name}");
+        _lastMusicCueLocation = location;
+        musicCue = location.Handle.Result;        
     }
 
-    private void UnloadLastHandle()
+    private void OnQuitToMenu()
     {
-        if (_lastMusicCueHandle.HasValue)
+        SelectionStrategy.Reset();
+        foreach (SelectionStrategy strat in Strategies.Values)
         {
-            Addressables.Release(_lastMusicCueHandle.Value);
-            _lastMusicCueHandle = null;
+            strat.InitStrategy();
         }
     }
-
-    private AsyncOperationHandle<MusicCue>? _lastMusicCueHandle { get; set; } = null;
 
     private void FindAudioCues()
     {
@@ -133,14 +115,6 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
             .Where(loc => loc.InternalId.StartsWith("Assets/Audio/MusicCues"))
             .ToList();
         SelectionStrategy.SetResourceLocations(musicCueLocations);
-
-        /*
-        _atmosCueLocations = Addressables.ResourceLocators.First()
-            .AllLocations
-            .Where(loc => loc.ResourceType == typeof(AtmosCue))
-            .Where(loc => loc.InternalId.StartsWith("Assets/Audio/AtmosCues"))
-            .ToList();
-        */
 
         Logger.LogInfo($"Found {musicCueLocations.Count} music cue locations");
     }
