@@ -38,7 +38,7 @@
     </PackageReference>
     <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
     <PackageReference Include="Silksong.GameLibs" Version="*-*" PrivateAssets="all" />
-    <PackageReference Include="Silksong.AssetHelper" Version="1.0.0" />
+    <PackageReference Include="Silksong.AssetHelper" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
