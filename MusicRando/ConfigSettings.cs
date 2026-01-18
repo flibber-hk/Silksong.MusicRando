@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using Silksong.ModMenu.Plugin;
 
 namespace MusicRando;
 
@@ -10,6 +11,6 @@ internal static class ConfigSettings
     {
         MusicRandomization = config.Bind(
             "General", nameof(MusicRandomization), RandomizationStrategyOption.OnChange, new ConfigDescription(
-                "When to randomize the music", null));  // TODO - right description for menu entry
+                "When to randomize the music", null, MenuElementGenerators.CreateRightDescGenerator(false)));
     }
 }

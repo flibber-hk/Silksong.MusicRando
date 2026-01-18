@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 # The name of the team you are publishing as
 namespace = "flibber"
 # max 250 characters
-description = "Example mod description"
+description = "Music randomization mod"
 
 # Replace this with a correct repo URL if the default is not accurate
 websiteUrl = "https://github.com/flibber-hk/Silksong.MusicRando"
@@ -17,6 +17,7 @@ containsNsfwContent = false
 BepInEx-BepInExPack_Silksong = "5.4.2304"
 MonoDetour-MonoDetour_BepInEx_5 = "0.7.5"
 silksong_modding-AssetHelper = "1.0.1"
+silksong_modding-ModMenu = "0.2.0"
 
 
 # in most cases you should not change this build block, or the first build.copy block; the dist and tmp directories are used
