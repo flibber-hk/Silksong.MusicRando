@@ -16,7 +16,6 @@ namespace MusicRando;
 // * Nuuvestigate channels - particularly the Sub-Area AudioMixerSnapshot which sometimes kills the music,
 // presumably if the music cue is missing a certain channel. Maybe we should fill the missing channels
 // with the main channel's music?
-// * Probably ought to turn the On hook into a Monomod Hook, or alternatively get MMHOOK on Nuget
 
 
 [BepInAutoPlugin(id: "io.github.flibber-hk.musicrando")]

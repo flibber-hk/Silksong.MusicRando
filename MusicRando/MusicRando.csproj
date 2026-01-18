@@ -47,7 +47,7 @@
     <MonoDetourHookGenStripUnusedHooks>true</MonoDetourHookGenStripUnusedHooks>
   </PropertyGroup>
   
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+  <ItemGroup>
     <PackageReference Include="Silksong.FilteredLogs" Version="1.0.0" />
   </ItemGroup>
   
