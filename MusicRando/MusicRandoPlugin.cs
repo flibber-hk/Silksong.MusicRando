@@ -49,6 +49,8 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
 
         ConfigSettings.MusicRandomization?.SettingChanged += (sender, e) =>
         {
+            SelectionStrategy.Reset();
+            _lastMusicCueLocation = null;
             if (Strategies.TryGetValue(ConfigSettings.MusicRandomization.Value, out SelectionStrategy strategy))
             {
                 strategy.InitStrategy();
@@ -107,6 +109,7 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
     private void OnQuitToMenu()
     {
         SelectionStrategy.Reset();
+        _lastMusicCueLocation = null;
         foreach (SelectionStrategy strat in Strategies.Values)
         {
             strat.InitStrategy();
