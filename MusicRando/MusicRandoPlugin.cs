@@ -1,10 +1,13 @@
 using BepInEx;
+using BepInEx.Logging;
 using MonoDetour.HookGen;
+using MusicRando.Cache;
 using MusicRando.MusicSelectionStrategies;
 using Silksong.AssetHelper;
 using Silksong.AssetHelper.Core;
 using Silksong.AssetHelper.ManagedAssets;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
@@ -26,8 +29,12 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
 {
     private static Dictionary<RandomizationStrategyOption, SelectionStrategy> Strategies { get; set; }
 
+    internal static ManualLogSource InstanceLogger { get; private set; }
+
     private void Awake()
     {
+        InstanceLogger = Logger;
+
         ConfigSettings.Init(Config);
         GameEvents.Hook();
 
@@ -42,6 +49,8 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
 
         ConfigSettings.MusicRandomization?.SettingChanged += (sender, e) =>
         {
+            SelectionStrategy.Reset();
+            _lastMusicCueLocation = null;
             if (Strategies.TryGetValue(ConfigSettings.MusicRandomization.Value, out SelectionStrategy strategy))
             {
                 strategy.InitStrategy();
@@ -100,6 +109,7 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
     private void OnQuitToMenu()
     {
         SelectionStrategy.Reset();
+        _lastMusicCueLocation = null;
         foreach (SelectionStrategy strat in Strategies.Values)
         {
             strat.InitStrategy();
@@ -108,13 +118,39 @@ public partial class MusicRandoPlugin : BaseUnityPlugin
 
     private void FindAudioCues()
     {
-        List<IResourceLocation> musicCueLocations = AddressablesData.MainLocator!
-            .AllLocations
-            .Where(loc => loc.ResourceType == typeof(MusicCue))
-            .Where(loc => loc.InternalId.StartsWith("Assets/Audio/MusicCues"))
-            .ToList();
+        Stopwatch sw = Stopwatch.StartNew();
+
+        List<string> musicCueKeys = CacheManager.GetCached(
+            "musicrando.musiccues.json", Version, "0.1.0", GetMusicCuePrimaryKeys);
+
+        List<IResourceLocation> musicCueLocations = new();
+        foreach (string key in musicCueKeys)
+        {
+            if (!AddressablesData.MainLocator!.Locate(key, typeof(MusicCue), out IList<IResourceLocation> locs))
+            {
+                continue;
+            }
+
+            musicCueLocations.AddRange(locs);
+        }
+
         SelectionStrategy.SetResourceLocations(musicCueLocations);
 
-        Logger.LogInfo($"Found {musicCueLocations.Count} music cue locations");
+        sw.Stop();
+        Logger.LogInfo($"Prepared music cue locations in {sw.ElapsedMilliseconds} ms");
+    }
+
+    private List<string> GetMusicCuePrimaryKeys()
+    {
+        List<string> result = [];
+        foreach (string pkey in AddressablesData.MainLocator!.Keys.OfType<string>())
+        {
+            if (AddressablesData.MainLocator!.Locate(pkey, typeof(MusicCue), out _))
+            {
+                result.Add(pkey);
+            }
+        }
+
+        return result;
     }
 }
