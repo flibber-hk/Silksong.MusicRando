@@ -29,6 +29,11 @@ internal abstract class SelectionStrategy
         Dictionary<string, IResourceLocation> theLocs = [];
         foreach (IResourceLocation loc in locs)
         {
+            if (loc.InternalId.EndsWith("None.asset"))
+            {
+                continue;
+            }
+
             if (!MusicResourceLocations.ContainsKey(loc.InternalId))
             {
                 MusicResourceLocations.Add(loc.InternalId, new LoadableMusicCue(loc));
