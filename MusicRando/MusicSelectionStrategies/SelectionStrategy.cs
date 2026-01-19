@@ -25,7 +25,18 @@ internal abstract class SelectionStrategy
             throw new InvalidOperationException("Can't set locs more than once!");
         }
 
-        MusicResourceLocations = locs.ToDictionary(x => x.InternalId, x => new LoadableMusicCue(x));
+        MusicResourceLocations = [];
+        Dictionary<string, IResourceLocation> theLocs = [];
+        foreach (IResourceLocation loc in locs)
+        {
+            if (!MusicResourceLocations.ContainsKey(loc.InternalId))
+            {
+                MusicResourceLocations.Add(loc.InternalId, new LoadableMusicCue(loc));
+                theLocs.Add(loc.InternalId, loc);
+                continue;
+            }
+        }
+        MusicRandoPlugin.InstanceLogger.LogInfo($"Found {MusicResourceLocations.Count} distinct music cues");
 
         GameEvents.OnEnterGame += () =>
         {
