@@ -61,7 +61,7 @@ public static class CacheManager
     /// you change the implementation of the <paramref name="getter"/> function.</param>
     /// <param name="getter">Function used to compute the object. This will only be computed if the cached value changes.</param>
     /// <returns></returns>
-    public static T? GetCached<T>(
+    public static T GetCached<T>(
         string fileName,
         string currentPluginVersion,
         string earliestAcceptableVersion,

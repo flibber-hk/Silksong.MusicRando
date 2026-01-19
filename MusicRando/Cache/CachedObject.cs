@@ -6,5 +6,5 @@ internal class CachedObject<T> where T : class
 
     public string? PluginVersion { get; set; }
 
-    public T? Value { get; set; }
+    public required T Value { get; set; }
 }
