@@ -26,9 +26,9 @@
       },
       "Harmonize": {
         "type": "Direct",
-        "requested": "[1.0.5, )",
-        "resolved": "1.0.5",
-        "contentHash": "wRA1i6hDNM8NZy40FBVp1xawpfnJdSt/GXGe/mVtzbq8jDN+aa5eY0TxZ13p8SvvIwPDxIK50firGNsq/9+8hQ=="
+        "requested": "[1.0.6, )",
+        "resolved": "1.0.6",
+        "contentHash": "V5Y8evixyTU1MO0klQfV64vEwbMuitlNUEi3o/tvN/9PUS5Iitcn6RZxz3vW1MKfrywHayLR1jLxiL8TlaH5pQ=="
       },
       "HarmonyX": {
         "type": "Direct",
@@ -58,8 +58,8 @@
       "MonoDetour.HookGen": {
         "type": "Direct",
         "requested": "[0.7.*, )",
-        "resolved": "0.7.6",
-        "contentHash": "LVaOXo0eBk1LbR9gfrEd7e2YfB8ha5LgEzGOvq8XVtEyGZpNMABkd6LmROFWaqRZ3YL7HS+PNCKTds41fW5F8w==",
+        "resolved": "0.7.11",
+        "contentHash": "qqxEiu34oCGprNFYFKLvCBXq4vCyS62uZ4mTyS0HcpYYHStoHXO8/dqECKp/VaJjLyPfcgk7qCtDlunL4nKELA==",
         "dependencies": {
           "MonoDetour": "0.5.0"
         }
