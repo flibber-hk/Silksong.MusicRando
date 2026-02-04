@@ -38,7 +38,7 @@
     </PackageReference>
     <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
     <PackageReference Include="Silksong.GameLibs" Version="*-*" PrivateAssets="all" />
-    <PackageReference Include="Silksong.AssetHelper" Version="1.0.1" />
+    <PackageReference Include="Silksong.AssetHelper" Version="1.2.1" />
     <PackageReference Include="MonoDetour.HookGen" Version="0.7.*" PrivateAssets="all" />
     <PackageReference Include="MonoDetour" Version="*" />
     <PackageReference Include="Silksong.ModMenu" Version="0.2.0" />
