@@ -57,9 +57,9 @@
       },
       "MonoDetour.HookGen": {
         "type": "Direct",
-        "requested": "[0.7.*, )",
-        "resolved": "0.7.6",
-        "contentHash": "LVaOXo0eBk1LbR9gfrEd7e2YfB8ha5LgEzGOvq8XVtEyGZpNMABkd6LmROFWaqRZ3YL7HS+PNCKTds41fW5F8w==",
+        "requested": "[0.7.12, )",
+        "resolved": "0.7.12",
+        "contentHash": "h9UhcqMDiXqlO5omQ8J3n17n/3vVT3IzxiL14HQ9QxYnGVX8kBiSkIV0mT+sZ2yccmgEu3daJwHQxUFphVrwpA==",
         "dependencies": {
           "MonoDetour": "0.5.0"
         }
